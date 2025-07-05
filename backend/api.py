@@ -57,4 +57,8 @@ def search():
         'matches': formatted_results
     })
 
+@app.route('/add',methods=['POST'])
+def add():
+    video=request.args.get('id')
+
 app.run(debug=True)

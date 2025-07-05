@@ -361,8 +361,17 @@ export default function Home() {
                 <motion.h1
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                  className="text-2xl md:text-4xl font-light tracking-wide text-indigo-400 mb-2"
+                >
+                  SearchCPS
+                </motion.h1>
+                
+                <motion.h1
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.3 }}
-                  className="text-3xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent"
+                  className="text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent"
                 >
                   {displayText}
                 </motion.h1>
@@ -1063,7 +1072,7 @@ export default function Home() {
         initial={{ opacity: 0, y: 100 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.8 }}
-        className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[95%] sm:w-11/12 max-w-2xl z-30"
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] sm:w-10/12 max-w-xl z-30"
       >
         <motion.div
           whileHover={{ scale: 1.01 }}
@@ -1072,7 +1081,7 @@ export default function Home() {
           <Search className="text-zinc-400 w-4 h-4 flex-shrink-0" />
           <input
             type="text"
-            placeholder="Search for clinical cases..."
+            placeholder="Search for clinical cases... (Press Enter to search)"
             value={inputValue}
             onChange={(e) => SetInputValue(e.target.value)}
             className="flex-grow outline-none text-white placeholder-zinc-500 bg-transparent text-sm md:text-base ml-1"
@@ -1083,25 +1092,11 @@ export default function Home() {
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            onClick={handleSend}
-            disabled={loading}
-            className={`p-2 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white transition-colors ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
-          >
-            <motion.div
-              animate={loading ? { rotate: 360 } : { rotate: 0 }}
-              transition={{ duration: 1, repeat: loading ? Number.POSITIVE_INFINITY : 0, ease: "linear" }}
-            >
-              {loading ? <Loader2 className="w-4 h-4"></Loader2> : <Send className="w-4 h-4" />}
-            </motion.div>
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
             onClick={() => setShowFilter(true)}
-            className="p-2 rounded-full bg-zinc-700 hover:bg-zinc-600 text-white transition-colors relative"
+            className="p-3 rounded-full bg-zinc-700 hover:bg-zinc-600 text-white transition-colors relative"
             aria-label="Filter"
           >
-            <Filter className="w-4 h-4" />
+            <Filter className="w-5 h-5" />
             {(selectedDiagnoses.length > 0 || selectedComplaints.length > 0 || selectedTopics.length > 0) && (
               <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 border border-zinc-800 shadow">
                 {selectedDiagnoses.length + selectedComplaints.length + selectedTopics.length}
@@ -1335,5 +1330,4 @@ export default function Home() {
     </motion.div>
   );
 }
-
 
