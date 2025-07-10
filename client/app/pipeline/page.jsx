@@ -6,7 +6,30 @@ import Link from "next/link"
 
 export default function Pipeline() {
     const [youtubeUrl, setYoutubeUrl] = useState("")
+    const [chiefComplaint, setChiefComplaint] = useState("")
+    const [tagsInput, setTagsInput] = useState("")
+    const [tags, setTags] = useState([])
+    const [topics, setTopics] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
+
+    // Handle tag input and splitting on comma
+    const handleTagsInputChange = (e) => {
+        const value = e.target.value
+        if (value.endsWith(",")) {
+            const newTag = value.slice(0, -1).trim()
+            if (newTag && !tags.includes(newTag)) {
+                setTags([...tags, newTag])
+            }
+            setTagsInput("")
+        } else {
+            setTagsInput(value)
+        }
+    }
+
+    // Remove tag by index
+    const handleRemoveTag = (idx) => {
+        setTags(tags.filter((_, i) => i !== idx))
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -19,8 +42,14 @@ export default function Pipeline() {
         
         // Simulate processing time
         setTimeout(() => {
-            alert(`Video added to database successfully!\nURL: ${youtubeUrl}`)
+            alert(
+                `Video added to database successfully!\nURL: ${youtubeUrl}\nChief Complaint: ${chiefComplaint}\nTags: ${tags.join(", ")}\nTopics: ${topics}`
+            )
             setYoutubeUrl("")
+            setChiefComplaint("")
+            setTagsInput("")
+            setTags([])
+            setTopics("")
             setIsSubmitting(false)
         }, 1000)
     }
@@ -105,6 +134,74 @@ export default function Pipeline() {
                             <p className="mt-2 text-xs text-zinc-500">
                                 Enter a valid YouTube URL to add the video to our medical database
                             </p>
+                        </div>
+
+                        {/* Chief Complaint */}
+                        <div>
+                            <label htmlFor="chief-complaint" className="block text-sm font-medium text-zinc-300 mb-3">
+                                Chief Complaint
+                            </label>
+                            <input
+                                id="chief-complaint"
+                                type="text"
+                                value={chiefComplaint}
+                                onChange={(e) => setChiefComplaint(e.target.value)}
+                                placeholder="e.g. Chest pain"
+                                className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-700/50 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition-all"
+                                required
+                            />
+                        </div>
+
+                        {/* Tags */}
+                        <div>
+                            <label htmlFor="tags" className="block text-sm font-medium text-zinc-300 mb-3">
+                                Tags (comma separated)
+                            </label>
+                            <input
+                                id="tags"
+                                type="text"
+                                value={tagsInput}
+                                onChange={handleTagsInputChange}
+                                placeholder="e.g. cardiology, emergency, ECG"
+                                className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-700/50 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition-all"
+                            />
+                            {/* Tag pills UI */}
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {tags.map((tag, idx) => (
+                                    <span
+                                        key={tag + idx}
+                                        className="inline-flex items-center bg-red-600/80 text-white px-3 py-1 rounded-full text-xs font-medium"
+                                    >
+                                        {tag}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveTag(idx)}
+                                            className="ml-2 text-white/70 hover:text-white focus:outline-none"
+                                            aria-label={`Remove tag ${tag}`}
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                ))}
+                            </div>
+                            <p className="mt-2 text-xs text-zinc-500">
+                                Separate tags with commas (e.g. cardiology, emergency, ECG)
+                            </p>
+                        </div>
+
+                        {/* Topics */}
+                        <div>
+                            <label htmlFor="topics" className="block text-sm font-medium text-zinc-300 mb-3">
+                                Topics
+                            </label>
+                            <input
+                                id="topics"
+                                type="text"
+                                value={topics}
+                                onChange={(e) => setTopics(e.target.value)}
+                                placeholder="e.g. STEMI, arrhythmia"
+                                className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-700/50 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition-all"
+                            />
                         </div>
 
                         <motion.button

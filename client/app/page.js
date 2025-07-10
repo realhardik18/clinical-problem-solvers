@@ -127,7 +127,7 @@ export default function Home() {
 
     try {
       // Using the correct endpoint for search
-      const res = await fetch(`https://clinical-problem-solvers.onrender.com/search?query=${inputValue}`)
+      const res = await fetch(`http://127.0.0.1:5000/search?query=${inputValue}`)
       
       // Check if the response is valid JSON
       const contentType = res.headers.get("content-type");
