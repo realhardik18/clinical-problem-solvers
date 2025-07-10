@@ -33,6 +33,8 @@ export default function Home() {
   const [selectedTranscript, setSelectedTranscript] = useState(null)
   const [loadingProgress, setLoadingProgress] = useState(0)
   const [showFilter, setShowFilter] = useState(false)
+  // Add state for search bubble
+  const [showSearchBar, setShowSearchBar] = useState(false);
   
   // Filter states for all three categories
   const [selectedDiagnoses, setSelectedDiagnoses] = useState([])
@@ -1067,46 +1069,105 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* Search bar - improved for mobile */}
+      {/* --- BUBBLE BUTTONS --- */}
       <motion.div
         initial={{ opacity: 0, y: 100 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.8 }}
-        className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] sm:w-10/12 max-w-xl z-30"
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-6"
+        style={{ pointerEvents: showSearchBar || showFilter ? "none" : "auto" }}
       >
-        <motion.div
-          whileHover={{ scale: 1.01 }}
-          className="flex items-center w-full gap-1 sm:gap-2 bg-gradient-to-r from-zinc-800/90 to-zinc-900/90 border border-zinc-700/50 rounded-full px-3 sm:px-4 py-2 sm:py-3 shadow-xl backdrop-blur"
-        >
-          <Search className="text-zinc-400 w-4 h-4 flex-shrink-0" />
-          <input
-            type="text"
-            placeholder="Search for clinical cases... (Press Enter to search)"
-            value={inputValue}
-            onChange={(e) => SetInputValue(e.target.value)}
-            className="flex-grow outline-none text-white placeholder-zinc-500 bg-transparent text-sm md:text-base ml-1"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSend()
-            }}
-          />
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setShowFilter(true)}
-            className="p-3 rounded-full bg-zinc-700 hover:bg-zinc-600 text-white transition-colors relative"
-            aria-label="Filter"
-          >
-            <Filter className="w-5 h-5" />
-            {(selectedDiagnoses.length > 0 || selectedComplaints.length > 0 || selectedTopics.length > 0) && (
-              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 border border-zinc-800 shadow">
-                {selectedDiagnoses.length + selectedComplaints.length + selectedTopics.length}
-              </span>
-            )}
-          </motion.button>
-        </motion.div>
+        {!showSearchBar && !showFilter && (
+          <>
+            {/* Search Bubble */}
+            <motion.button
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={() => setShowSearchBar(true)}
+              className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 shadow-xl border-4 border-zinc-900 text-white text-2xl transition-all"
+              aria-label="Open search"
+              style={{ pointerEvents: "auto" }}
+            >
+              <Search className="w-7 h-7" />
+            </motion.button>
+            {/* Filter Bubble */}
+            <motion.button
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={() => setShowFilter(true)}
+              className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-purple-700 shadow-xl border-4 border-zinc-900 text-white text-2xl transition-all relative"
+              aria-label="Open filter"
+              style={{ pointerEvents: "auto" }}
+            >
+              <Filter className="w-7 h-7" />
+              {(selectedDiagnoses.length > 0 || selectedComplaints.length > 0 || selectedTopics.length > 0) && (
+                <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 border border-zinc-800 shadow">
+                  {selectedDiagnoses.length + selectedComplaints.length + selectedTopics.length}
+                </span>
+              )}
+            </motion.button>
+          </>
+        )}
       </motion.div>
 
-      {/* Filter modal - made more responsive */}
+      {/* --- ANIMATED SEARCH BAR --- */}
+      <AnimatePresence>
+        {showSearchBar && (
+          <motion.div
+            initial={{ opacity: 0, y: 80, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 80, scale: 0.95 }}
+            transition={{ duration: 0.25 }}
+            className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] sm:w-10/12 max-w-xl z-40"
+            style={{ pointerEvents: "auto" }}
+          >
+            <motion.div
+              whileHover={{ scale: 1.01 }}
+              className="flex items-center w-full gap-1 sm:gap-2 bg-gradient-to-r from-zinc-800/90 to-zinc-900/90 border border-zinc-700/50 rounded-full px-3 sm:px-4 py-2 sm:py-3 shadow-xl backdrop-blur"
+            >
+              {/* Back/Close button */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setShowSearchBar(false)}
+                className="p-2 rounded-full bg-zinc-700 hover:bg-zinc-600 text-white transition-colors"
+                aria-label="Close search"
+              >
+                <X className="w-5 h-5" />
+              </motion.button>
+              <Search className="text-zinc-400 w-4 h-4 flex-shrink-0" />
+              <input
+                type="text"
+                placeholder="Search for clinical cases... (Press Enter to search)"
+                value={inputValue}
+                onChange={(e) => SetInputValue(e.target.value)}
+                className="flex-grow outline-none text-white placeholder-zinc-500 bg-transparent text-sm md:text-base ml-1"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSend();
+                    setShowSearchBar(false);
+                  }
+                }}
+              />
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => {
+                  handleSend();
+                  setShowSearchBar(false);
+                }}
+                className="p-3 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
+                aria-label="Submit search"
+              >
+                <Send className="w-5 h-5" />
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* --- FILTER MODAL (unchanged, but pointerEvents fix) --- */}
       <AnimatePresence>
         {showFilter && (
           <>
@@ -1116,6 +1177,7 @@ export default function Home() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="fixed inset-0 bg-black z-40"
+              style={{ pointerEvents: "auto" }}
             />
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 40 }}
@@ -1330,4 +1392,3 @@ export default function Home() {
     </motion.div>
   );
 }
-
