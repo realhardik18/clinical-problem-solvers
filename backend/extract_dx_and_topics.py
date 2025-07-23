@@ -37,7 +37,8 @@ def extract_dx_and_topics():
             value = {
                 'Final Dx': row['Final Dx'], 
                 'Topics' : row['Topics'],
-                'Chief Complaint': row['Chief Complaint']
+                'Chief Complaint': row['Chief Complaint'],
+                "slide":row["Filename"]
                                
             }
             print(row.keys())

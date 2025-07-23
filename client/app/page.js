@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { diagnosisList } from "./diagnosisList"
 import dxDataRaw from "../public/dx.json" assert { type: "json" };
+import whiteboardData from "../public/data.json" assert { type: "json" };
 
 const processVideoUrl = (url, startTime) => {
   if (!url) return "#"
@@ -302,6 +303,56 @@ export default function Home() {
     
     return null
   }
+
+  // Add helper function to get whiteboard data for URL
+  const getWhiteboardDataForUrl = (url) => {
+    if (!url || !whiteboardData) return null
+    
+    // Clean the URL for comparison
+    const cleanUrl = url.replace(/\n/g, "").trim()
+    
+    // Try to find exact match first (including the \n in the key)
+    const urlWithNewline = cleanUrl + "\n"
+    if (whiteboardData[urlWithNewline]) {
+      return whiteboardData[urlWithNewline]
+    }
+    
+    // Try without newline
+    if (whiteboardData[cleanUrl]) {
+      return whiteboardData[cleanUrl]
+    }
+    
+    // Try to find partial match (YouTube video ID)
+    const videoIdMatch = cleanUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)
+    if (videoIdMatch) {
+      const videoId = videoIdMatch[1]
+      for (const [whiteboardUrl, whiteboardDataItem] of Object.entries(whiteboardData)) {
+        if (whiteboardUrl.includes(videoId)) {
+          return whiteboardDataItem
+        }
+      }
+    }
+    
+    return null
+  }
+
+  // Add state for whiteboard modal
+  const [showWhiteboard, setShowWhiteboard] = useState(false);
+  const [whiteboardModalData, setWhiteboardModalData] = useState(null);
+  // Add zoom and pan state
+  const [wbZoom, setWbZoom] = useState(1);
+  const [wbOffset, setWbOffset] = useState({ x: 0, y: 0 });
+  const [wbDragging, setWbDragging] = useState(false);
+  const [wbDragStart, setWbDragStart] = useState({ x: 0, y: 0 });
+
+  // Reset zoom/pan when modal opens/closes
+  useEffect(() => {
+    if (showWhiteboard) {
+      setWbZoom(1);
+      setWbOffset({ x: 0, y: 0 });
+      setWbDragging(false);
+    }
+  }, [showWhiteboard]);
 
   return (
     <motion.div
@@ -663,6 +714,25 @@ export default function Home() {
                   <div className="flex items-center justify-between pt-4 border-t border-zinc-700/50">
                     <div className="text-xs text-zinc-500">{item.upload_date}</div>
                     <div className="flex items-center gap-2">
+                      {/* Add View Whiteboard button */}
+                      {(() => {
+                        const whiteboardData = getWhiteboardDataForUrl(item.url)
+                        return whiteboardData && whiteboardData.slide_url && (
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="px-2 sm:px-3 py-1 sm:py-1.5 bg-yellow-500 hover:bg-yellow-600 text-black rounded-full text-xs flex items-center gap-1 transition-colors font-medium"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              setWhiteboardModalData(whiteboardData)
+                              setShowWhiteboard(true)
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                            <span className="hidden sm:inline">View Whiteboard</span>
+                          </motion.button>
+                        )
+                      })()}
                       <a
                         href={item.url}
                         target="_blank"
@@ -826,14 +896,34 @@ export default function Home() {
                           <FileText className="w-3 h-3" />
                           <span className="hidden sm:inline">Transcript</span>
                         </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                        {/* Add View Whiteboard button */}
+                        {(() => {
+                          const whiteboardData = getWhiteboardDataForUrl(item.url)
+                          return whiteboardData && whiteboardData.slide_url && (
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              className="px-2 sm:px-3 py-1 sm:py-1.5 bg-yellow-500 hover:bg-yellow-600 text-black rounded-full text-xs flex items-center gap-1 transition-colors font-medium"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                setWhiteboardModalData(whiteboardData)
+                                setShowWhiteboard(true)
+                              }}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                              <span className="hidden sm:inline">View Whiteboard</span>
+                            </motion.button>
+                          )
+                        })()}
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="px-2 sm:px-3 py-1 sm:py-1.5 bg-white hover:bg-zinc-200 text-black rounded-full text-xs flex items-center gap-1 transition-colors"
                         >
                           <Send className="w-3 h-3" />
                           <span className="hidden sm:inline">Watch</span>
-                        </motion.button>
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -990,14 +1080,34 @@ export default function Home() {
                           <FileText className="w-3 h-3" />
                           <span className="hidden sm:inline">Transcript</span>
                         </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                        {/* Add View Whiteboard button */}
+                        {(() => {
+                          const whiteboardData = getWhiteboardDataForUrl(item.url)
+                          return whiteboardData && whiteboardData.slide_url && (
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              className="px-2 sm:px-3 py-1 sm:py-1.5 bg-yellow-500 hover:bg-yellow-600 text-black rounded-full text-xs flex items-center gap-1 transition-colors font-medium"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                setWhiteboardModalData(whiteboardData)
+                                setShowWhiteboard(true)
+                              }}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                              <span className="hidden sm:inline">View Whiteboard</span>
+                            </motion.button>
+                          )
+                        })()}
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="px-2 sm:px-3 py-1 sm:py-1.5 bg-white hover:bg-zinc-200 text-black rounded-full text-xs flex items-center gap-1 transition-colors"
                         >
                           <Send className="w-3 h-3" />
                           <span className="hidden sm:inline">Watch</span>
-                        </motion.button>
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -1010,60 +1120,109 @@ export default function Home() {
         </AnimatePresence>
       </motion.div>
 
-      {/* Transcript sidebar - made responsive */}
+      {/* --- WHITEBOARD MODAL --- */}
       <AnimatePresence>
-        {showTranscript && (
+        {showWhiteboard && whiteboardModalData && (
           <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed right-0 top-0 h-full w-full sm:w-[80%] md:w-96 bg-zinc-900/95 border-l border-zinc-700/50 backdrop-blur-lg z-50"
+            initial={{ opacity: 0, scale: 0.95, y: 40 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 40 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur"
+            style={{ pointerEvents: "auto" }}
           >
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold">Transcript Data</h3>
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => setShowTranscript(false)}
-                  className="p-2 hover:bg-zinc-800 rounded-full transition-colors"
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 40, opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="relative bg-zinc-900 rounded-xl shadow-2xl border border-zinc-700/60 w-[98vw] max-w-2xl sm:max-w-3xl p-4 flex flex-col items-center"
+            >
+              <button
+                className="absolute top-2 right-2 p-2 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-200"
+                onClick={() => setShowWhiteboard(false)}
+                aria-label="Close whiteboard"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <div className="w-full flex flex-col items-center">
+                <h3 className="text-base font-semibold text-white mb-2 text-center">Whiteboard</h3>
+                {/* Zoom and pan controls */}
+                <div className="flex gap-2 mb-2">
+                  <button
+                    className="px-2 py-1 rounded bg-zinc-800 text-white text-xs hover:bg-zinc-700"
+                    onClick={() => setWbZoom(z => Math.max(0.5, z - 0.2))}
+                  >-</button>
+                  <span className="text-xs text-zinc-300">{Math.round(wbZoom * 100)}%</span>
+                  <button
+                    className="px-2 py-1 rounded bg-zinc-800 text-white text-xs hover:bg-zinc-700"
+                    onClick={() => setWbZoom(z => Math.min(3, z + 0.2))}
+                  >+</button>
+                  <button
+                    className="px-2 py-1 rounded bg-zinc-800 text-white text-xs hover:bg-zinc-700"
+                    onClick={() => { setWbZoom(1); setWbOffset({ x: 0, y: 0 }); }}
+                  >Reset</button>
+                </div>
+                <div
+                  className="w-full h-[60vh] sm:h-[70vh] flex items-center justify-center bg-zinc-950 rounded-lg border border-zinc-700 mb-3 overflow-hidden relative"
+                  style={{ touchAction: "none", cursor: wbDragging ? "grabbing" : "grab" }}
+                  onMouseDown={e => {
+                    setWbDragging(true);
+                    setWbDragStart({ x: e.clientX - wbOffset.x, y: e.clientY - wbOffset.y });
+                  }}
+                  onMouseUp={() => setWbDragging(false)}
+                  onMouseLeave={() => setWbDragging(false)}
+                  onMouseMove={e => {
+                    if (wbDragging) {
+                      setWbOffset({
+                        x: e.clientX - wbDragStart.x,
+                        y: e.clientY - wbDragStart.y
+                      });
+                    }
+                  }}
+                  onWheel={e => {
+                    e.preventDefault();
+                    let newZoom = wbZoom + (e.deltaY < 0 ? 0.1 : -0.1);
+                    newZoom = Math.max(0.5, Math.min(3, newZoom));
+                    setWbZoom(newZoom);
+                  }}
                 >
-                  <X className="w-5 h-5" />
-                </motion.button>
+                  <img
+                    src={whiteboardModalData.slide_url}
+                    alt="Whiteboard"
+                    draggable={false}
+                    style={{
+                      transform: `scale(${wbZoom}) translate(${wbOffset.x / wbZoom}px, ${wbOffset.y / wbZoom}px)`,
+                      transition: wbDragging ? "none" : "transform 0.2s",
+                      maxWidth: "100%",
+                      maxHeight: "100%",
+                      userSelect: "none",
+                      pointerEvents: "none"
+                    }}
+                    className="object-contain rounded-lg"
+                  />
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 w-full justify-center">
+                  <a
+                    href={whiteboardModalData.slide_url}
+                    download
+                    className="flex-1 px-4 py-2 rounded-full bg-yellow-500 hover:bg-yellow-600 text-black text-sm font-semibold text-center"
+                  >
+                    Download
+                  </a>
+                  <a
+                    href={whiteboardModalData.slide_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 px-4 py-2 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold text-center"
+                  >
+                    Open in New Tab
+                  </a>
+                </div>
+                {whiteboardModalData.slide_title && (
+                  <div className="mt-3 text-xs text-zinc-300 text-center">{whiteboardModalData.slide_title}</div>
+                )}
               </div>
-              {selectedTranscript && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="space-y-4"
-                >
-                  <div className="text-sm text-zinc-400 space-y-2">
-                    <p>Timestamp: {selectedTranscript.start_time}s</p>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-zinc-800">
-                    <h5 className="text-sm font-medium mb-2">Transcript:</h5>
-                    <p className="text-sm text-zinc-300 whitespace-pre-wrap">{selectedTranscript.text}</p>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-zinc-800">
-                    <h5 className="text-sm font-medium mb-2">Medical Tags:</h5>
-                    <div className="flex flex-wrap gap-2">
-                      {filterMedicalTags(selectedTranscript.metadata?.title_extracted_entities).map((tag, index) => (
-                        <motion.span
-                          key={index}
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.4 + index * 0.05 }}
-                          className="px-2 py-1 bg-white/10 rounded-full text-xs text-white border border-white/20"
-                        >
-                          {tag.replace(/["\[\]]/g, '')}
-                        </motion.span>
-                      ))}
-                    </div>
-                  </div>
-                </motion.div>
-              )}
             </motion.div>
           </motion.div>
         )}
