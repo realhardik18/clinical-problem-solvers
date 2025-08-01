@@ -1228,6 +1228,58 @@ export default function Home() {
         )}
       </AnimatePresence>
 
+      {/* --- TRANSCRIPT SIDEBAR --- */}
+      <AnimatePresence>
+        {showTranscript && selectedTranscript && (
+          <motion.div
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 100 }}
+            transition={{ duration: 0.25 }}
+            className="fixed top-0 right-0 h-full w-full sm:w-[420px] max-w-full z-50 bg-zinc-900/95 border-l border-zinc-700 shadow-2xl flex flex-col"
+            style={{ pointerEvents: "auto" }}
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-700">
+              <h3 className="text-base font-semibold text-white text-center flex-1">Transcript</h3>
+              <button
+                className="p-2 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-200 ml-2"
+                onClick={() => setShowTranscript(false)}
+                aria-label="Close transcript"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              {/* Show all transcript data if available */}
+              {Array.isArray(selectedTranscript.transcript) && selectedTranscript.transcript.length > 0 ? (
+                <div className="space-y-4">
+                  {selectedTranscript.transcript.map((chunk, idx) => (
+                    <div key={idx} className="mb-2">
+                      <div className="text-xs text-zinc-400 mb-1">
+                        {chunk.speaker && <span className="font-semibold">{chunk.speaker}: </span>}
+                        {chunk.start_time !== undefined && (
+                          <span className="text-zinc-500">
+                            [{Math.floor(chunk.start_time / 60)}:{String(Math.floor(chunk.start_time % 60)).padStart(2, "0")}]
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-sm text-zinc-200 whitespace-pre-line">{chunk.text}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : selectedTranscript.text ? (
+                <div className="text-sm text-zinc-200 whitespace-pre-line">{selectedTranscript.text}</div>
+              ) : (
+                <div className="text-zinc-400 text-sm">No transcript available.</div>
+              )}
+            </div>
+            <div className="px-4 py-2 border-t border-zinc-700 text-xs text-zinc-400 text-center">
+              {selectedTranscript.metadata?.title || selectedTranscript.title}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* --- BUBBLE BUTTONS --- */}
       <motion.div
         initial={{ opacity: 0, y: 100 }}
